@@ -1,0 +1,1 @@
+# python_abstract_class_variables_example
