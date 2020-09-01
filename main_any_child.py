@@ -14,14 +14,27 @@ class ClassWithAbstractVariables(object):
     ]
 
     @classmethod
+    def check_required_class_variables(cls, parent, child):
+        # print('\n----------\n', parent)
+        parent__required_class_variables = '_' + parent.__name__ + '__required_class_variables'
+        child__required_class_variables = '_' + child.__name__ + '__required_class_variables'
+        if hasattr(parent, parent__required_class_variables):
+            for var in getattr(parent, parent__required_class_variables):
+                # print('var ', var,
+                #       '\nchild.__dict__ ', child.__dict__,
+                #       '\nhasattr(child, var): ', hasattr(child, var))
+                if not hasattr(child, var):
+                    if ((not hasattr(child, child__required_class_variables)) or
+                            (var not in getattr(child, child__required_class_variables))):
+                        raise NotImplementedError(
+                            f'Class {child} lacks required `{var}` class attribute'
+                        )
+
+    @classmethod
     def __init_subclass__(cls):
-        for var in cls.__base__().__required_class_variables:
-            if not hasattr(cls, var):
-                if ((not hasattr(cls, '_' + cls.__name__ + '__required_class_variables')) or
-                    (var not in cls.__required_class_variables)):
-                    raise NotImplementedError(
-                        f'Class {cls} lacks required `{var}` class attribute'
-                    )
+        parent = cls.__base__
+        child = cls
+        parent().check_required_class_variables(parent=parent, child=child)
 
 
 class IntermediateClassFail(ClassWithAbstractVariables):
